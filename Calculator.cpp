@@ -80,7 +80,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 	vector<char> operacije;
 	vector<string> stek3; //Stek u koji se smestaju brojevi i operacije
 	string izraz = "";	//String koji se koristi za dodavanje brojeva na stek,posto
-						//ako je char stek ne mogu da ubacim dvocifrene brojeve
+						//ako je char stek ne mogu u njega da ubacim dvocifrene brojeve
 
 	//Prolazimo kroz svaki karakter u stringu i dodajemo ga u odgovarajuci stek
 	for (char s : input) {
@@ -99,7 +99,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 			//Proverava da li je karakter operacija,kao i prioritet odnosno da li je + ili * i pusuhje ga na stek
 			if (jeloperacija(s)) {
 
-				while (!operacije.empty() && prvenstvo(s) <= prvenstvo(operacije.back()) && jeloperacija(operacije.back())) {
+				while (!operacije.empty() && jeloperacija(operacije.back()) && prvenstvo(s) <= prvenstvo(operacije.back())) {
 					string temp = ""; temp += operacije.back();
 					operacije.pop_back();
 					stek3.push_back(temp);
@@ -112,7 +112,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 				operacije.push_back(s);
 			}
 			//Ako je stek prazan baca mu gresku zbog toga sto pre toga nije bila otvorena zagrada,
-			//ako nije pushuje na stek sve operacije dok ne nadje zatvorenu zagradu
+			//ako nije pushuje na stek sve operacije dok ne nadje otvorenu zagradu
 			else if (s == ')') {
 
 				if (!operacije.empty()) {
@@ -169,26 +169,26 @@ vector<string> Calculator::InfixToRPN(string input) {
 }
 
 //Funkcija racuna izraz u zavisnosti od operacije i vraca ga
-double Calculator::racunanje(double a, double b, char op) {
+double Calculator::racunanje(double i, double j, char op) {
 
 	double rez;
 
 	switch (op)
 	{
 	case '+':
-		rez = a + b;
+		rez = i + j;
 		break;
 	case '-':
-		rez = a - b;
+		rez = i - j;
 		break;
 	case '*':
-		rez = a * b;
+		rez = i * j;
 		break;
 	case '/':
-		if (b == 0) {
+		if (j == 0 || floor(i/j) != i/j) {
 			throw "GRESKA";
 		}
-		rez = a / b;
+		rez = i / j;
 		break;
 
 	default:
@@ -214,15 +214,15 @@ double Calculator::racunajRPN(vector<string> stek) {
 				rezultati.push_back(stod(c));
 			}
 			else if (jeloperacija(c[0])) {
-				double a = rezultati.back(); rezultati.pop_back();
-				double b = rezultati.back(); rezultati.pop_back();
-				rez = racunanje(a, b, c[0]);
+				double j = rezultati.back(); rezultati.pop_back();
+				double i = rezultati.back(); rezultati.pop_back();
+				rez = racunanje(i, j, c[0]);
 				rezultati.push_back(rez);
 			}
 		}
 
 		//Ako je na steku ostalo vise od 1 broja ili manje baca gresku
-		if (rezultati.size() > 1) {
+		if (rezultati.size() > 1 || rezultati.size() < 1) {
 			throw "GRESKA";
 		}
 		//Popuje broj sa steka koji predstavlja rezultat celog izraza
