@@ -10,8 +10,10 @@
 #include <limits>
 #include "Calculator.h"
 #include "Runda.h"
+#include "Trazeni.h"
 
 using namespace std;
+
 
 //Funkcija ucitava brojeve za svaku rundu i smesta ih u vektor igara
 
@@ -68,74 +70,6 @@ string unos_fajla() {
 
 }
 
-//Funkcija prima vektor nasih brojeva koji se permutuje kroz rekurziju u kojoj fiksiramo prvi element,
-//pa ostale elemente izmesamo i dodamo vektor u vektor permutacija i tako sve dok nam pozicija ne bude
-//na poslednjem elementu u vektoru brojeva. Set sluzi kako bi uklonili duplikate ,prilikom mesanja u set
-//dodajemo svaki broj i ukoliko on vec postoji preskacemo ga,a ukoliko ne postoji normalno radimo kao i pre.
-
-void permutuj_brojeve(vector<vector<double>>& permutacije,vector<double>& brojevi, int pozicija) {
-
-	if (pozicija == brojevi.size()-1) {
-		permutacije.push_back(brojevi);
-		return;
-	}
-
-	set<double> temp;
-
-	for (int el = pozicija; el < brojevi.size(); el++) {
-
-		if (temp.find(brojevi[el]) != temp.end()) {
-			continue;
-		}
-
-		temp.insert(brojevi[el]);
-		swap(brojevi[el], brojevi[pozicija]);
-		permutuj_brojeve(permutacije, brojevi, pozicija + 1);
-		swap(brojevi[el], brojevi[pozicija]);
-
-
-	}
-
-}
-
-//Funkcija u kojoj se poziva funkcija permutuj_brojeve() koja permutuje vektor,
-//i dodaje ga u vektor permutovani,funkcija vraca vektor vektora.
-
-vector<vector<double>> permutacija_vektora(vector<double>& brojevi) {
-
-	vector<vector<double>> permutovani;
-	permutuj_brojeve(permutovani, brojevi, 0);
-	return permutovani;
-}
-
-
-// Funkcija vraca sve moguce kombinacije operacija kroz 5 for petlji.
-
-vector<vector<int>> permutacija_operacija() {
-
-	vector<vector<int>> permutacije_op;
-
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-			for (int k = 0; k < 4; k++) {
-				for (int l = 0; l < 4; l++) {
-					for (int x = 0; x < 4; x++) {
-
-						vector<int> temp;
-						temp.push_back(i); temp.push_back(j); temp.push_back(k);
-						temp.push_back(l); temp.push_back(x);
-
-						permutacije_op.push_back(temp);
-
-					}
-				}
-			}
-		}
-	}
-
-	return permutacije_op;
-
-}
 //Funkcija racuna izraz u zavisnosti od operacije i vraca ga
 double racunaj(double i, double j, char op) {
 	double rez;
@@ -166,51 +100,93 @@ double racunaj(double i, double j, char op) {
 
 }
 
+string s(double br) {
 
-double pronadji_rezultat(vector<double> brojevi, double rezultat, double najblizi) {
-	
+	return to_string(br).substr(0, to_string(br).find('.'));
+}
+
+double rs(string izraz) {
+
+	Calculator calc;
+	vector<string> stek = calc.InfixToRPN(izraz);
+	double rez = calc.racunajRPN(stek);
+
+	return rez;
+}
+
+double rs_naj(vector<string> naj) {
+
+	string s = "";
+	for (string ss : naj) {
+		s += ss;
+	}
+	Calculator calc;
+	vector<string> stek = calc.InfixToRPN(s);
+	double rez = calc.racunajRPN(stek);
+
+	return rez;
+}
+
+
+bool pronadji_rezultat2(vector<string> brojevi, double rezultat,vector<string>& resenje, vector<string>& najblizi) {
+
+
 	char operacije[4] = { '+','-','*','/' };
 
 	for (int i = 0; i < brojevi.size()-1; i++) {
+		double a = rs(brojevi[i]);
 
-		double a = brojevi[i];
-		vector<double> brojevi2 = brojevi;
-		brojevi2.erase(brojevi2.begin());
-
-		for (int j = i + 1; j < brojevi2.size(); j++) {
-
-			double b = brojevi2[j];
-
+		for (int j = i + 1; j < brojevi.size(); j++) {
+			double b = rs(brojevi[j]);
+			
 			for (int k = 0; k < 4; k++) {
 
+				if (operacije[k] == '/' && ((a / b != floor(a / b)) || b == 1 || b == 0)) {
+					continue;
+				}
+				else if (operacije[k] == '-' && b > a) {
+					continue;
+				}
+				else if (operacije[k] == '*' && (b == 1 || a == 1)) {
+					continue;
+				}
+
+				string res = "(" + brojevi[i] + operacije[k] + brojevi[j] + ")";
 				double temp = racunaj(a, b, operacije[k]);
-				cout << temp << endl;
 				if (temp == 0) {
 					continue;
 				}
-				if (temp == rezultat) {
-					cout << "NASAO REZ!" << endl;
-				}
 
-				if (brojevi.size() > 2) {
-					vector<double> brojevi3 = brojevi;
-					brojevi3.erase(brojevi3.begin());
-					brojevi3.erase(brojevi3.begin());
-					brojevi3.push_back(temp);
+				vector<string> novi;
+				novi.push_back(res);
 
-					double r = pronadji_rezultat(brojevi3, rezultat, najblizi);
-
-					if (r != NULL) {
-						return temp;
+				for (int x = 0; x < brojevi.size(); x++) {
+					if (x == i || x == j) {
+						continue;
 					}
-
+					else {
+						novi.push_back(brojevi[x]);
+					}
 				}
-				
+
+				if (temp == rezultat) {
+					resenje = novi;
+					return true;
+				}
+				else if (novi.size() == 1) {
+					if (abs(rezultat - temp) < abs(rezultat - rs_naj(najblizi))) {
+						najblizi = novi;
+					}
+				}
+
+				if (pronadji_rezultat2(novi, rezultat, resenje, najblizi)) {
+					return true;
+				}
+
 			}
 		}
 	}
-
-
+	return false;
 }
 
 double racunaj2(vector<double> brojevi, vector<int> oper) {
@@ -247,59 +223,32 @@ double racunaj2(vector<double> brojevi, vector<int> oper) {
 
 
 
-double pronadji_resenje(vector<double> brojevi, double rezultat) {
+void pronadji_resenje(vector<double> brojevi, double rezultat) {
 
+	vector<string> najblizi;
+	najblizi.push_back("999+999");
+	vector<string> resenje;
 
-	
-	vector<vector<double>> sve_permutacije = permutacija_vektora(brojevi);
-	vector<vector<int>> sve_operacije = permutacija_operacija();
-	vector<string> stek;
-
-	double trazeni = rezultat;
-	double najblizi = 9999;
-	double rez;
-	double rezf = 0;
-
-	for (vector<double> vec : sve_permutacije) {
-
-		for (vector<int> op : sve_operacije) {
-
-			double rr = racunaj2(vec, op);
-			cout << "Broj: " << rr << endl;
-			if (rr == trazeni) {
-				cout << "PRONASAO !!!!!!" << endl;
-				return rr;
-			}
-		}
-	}
-	rezf = pronadji_rezultat(brojevi, trazeni, najblizi);
-
-
-
-	//for (int i = 0; i < stek.size(); i++) {
-	//	cout << stek[i] << endl;
-	//}
-
-	//cout << rezf;
-
-
-	/*for (vector<double> broj : sve_permutacije) {
-		for (vector<int> op : sve_operacije) {
-			rez = pronadji_rezultat(broj, trazeni, najblizi,stek);
-			cout << "REZ: " << najblizi << endl;
-			if (rez == trazeni) {
-				return rez;
-			}
-			else if (abs(trazeni - rez) < abs(trazeni-najblizi)) {
-				najblizi = rez;
-			}
-		}
+	vector<string> brojevi2;
+	for (double br : brojevi) {
+		brojevi2.push_back(s(br));
 	}
 
-	cout << "NAJBLIZI: " << najblizi << endl;
-	return najblizi;*/
+	Calculator cal;
 
-	return 0;
+	if (pronadji_rezultat2(brojevi2, rezultat, resenje, najblizi)) {
+		vector<string> stek = cal.InfixToRPN(resenje[0]);
+		double res = cal.racunajRPN(stek);
+
+		if (rezultat == res) {
+			cout << "Racunar je dobio tacan broj: " << rezultat << " = " << resenje[0] << endl;
+		}
+	}
+	else {
+		vector<string> stek = cal.InfixToRPN(najblizi[0]);
+		double res = cal.racunajRPN(stek);
+		cout << "Racunar je dobio najblizi broj: " << res << " = " << najblizi[0] << endl;
+	}
 
 }
 
@@ -321,18 +270,16 @@ vector<string> korisnikIzraz() {
 	while (true) {
 		try {
 			Calculator calc;
+
 			string input;
 			cin >> input;
-			vector<string> stek = calc.InfixToRPN(input);
-			
-			for (string s : stek) {
-				cout << s << " ";
-			}
 
-			cout << endl;
+			vector<string> stek = calc.InfixToRPN(input);
+
 			double racun = calc.racunajRPN(stek);
 			unos = input;
 			broj = racun;
+
 			cout << "Rezultat vaseg izraza: " << racun << endl;
 			break;
 		}
@@ -370,7 +317,6 @@ string koJePobednik(double resenjeA, double resenjeB, double odstupanjeA, double
 			cout << "Korisnici su jednako udaljeni od trazenog broja,runda je neresena!" <<endl;
 		}
 	}
-
 	return pobednik;
 
 
@@ -379,26 +325,16 @@ string koJePobednik(double resenjeA, double resenjeB, double odstupanjeA, double
 
 int main() {
 	
-	vector<Broj> sve_igre = ucitaj_fajl("brojevi.txt");
-	vector<double> vec = sve_igre[1].brojevi;
-	vector<vector<double>> vec_perm = permutacija_vektora(vec);
-	vector<vector<int>> op = permutacija_operacija();
-
-	
-
-	//cout << "Broj permutacija: " << vec_perm.size() << endl;
-	double ac = pronadji_resenje(vec, 687);
-
-	cout << ac << endl;
 
 
-	/*cout << "====================== MOJ BROJ ======================" << endl << endl;
+	cout << "====================== MOJ BROJ ======================" << endl << endl;
 
 	string unet_fajl = unos_fajla();
-	vector<Igra> sve_igre = ucitaj_fajl(unet_fajl);
+	vector<Broj> sve_igre = ucitaj_fajl(unet_fajl);
 	vector<Runda> sve_runde;
 
 	for (int i = 0; i < sve_igre.size(); i++) {
+		//pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje);
 
 		string izrazA = "Nema izraza";
 		string izrazB = "Nema izraza";
@@ -452,6 +388,7 @@ int main() {
 				}
 			}
 		}
+		pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje);
 
 		if (pobednik == "Nema pobednika") {
 			pobednik = koJePobednik(resenjeA, resenjeB, odstupanjeA, odstupanjeB);
@@ -461,7 +398,7 @@ int main() {
 			sve_runde.push_back(runda);
 		}
 
-	}*/
+	}
 
 }
 
