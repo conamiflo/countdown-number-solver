@@ -4,18 +4,14 @@
 #include <fstream>
 #include <vector>
 #include "Broj.h"
-#include <stack>
-#include <iterator>
-#include <set>
-#include <limits>
 #include "Calculator.h"
 #include "Runda.h"
-#include "Trazeni.h"
+
 
 using namespace std;
 
 
-//Funkcija ucitava brojeve za svaku rundu i smesta ih u vektor igara
+//Funkcija ucitava brojeve za svaku rundu i smesta ih u vektor brojeva
 
 vector<Broj> ucitaj_fajl(string ime_fajla) {
 	ifstream in(ime_fajla);
@@ -48,7 +44,7 @@ vector<Broj> ucitaj_fajl(string ime_fajla) {
 
 
 //Funkcija proverava da li je korisnik uneo postojeci fajl koji sadrzi
-//brojeve za svaku rundu
+//brojeve za svaku rundu,vraca string naziva fajla.
 
 string unos_fajla() {
 
@@ -70,7 +66,8 @@ string unos_fajla() {
 
 }
 
-//Funkcija racuna izraz u zavisnosti od operacije i vraca ga
+//Funkcija prima 2 broja i operaciju i racuna izraz u zavisnosti
+// od operacije i vraca ga,baca gresku ukoliko dodje do deljenja 0.
 double racunaj(double i, double j, char op) {
 	double rez;
 
@@ -100,11 +97,13 @@ double racunaj(double i, double j, char op) {
 
 }
 
+//Funkcija pretvara double vrednost u string.
 string s(double br) {
 
 	return to_string(br).substr(0, to_string(br).find('.'));
 }
 
+//Funkcija racuna izraz pretvaranjem u RPN notaciju i izracunavanjem.
 double rs(string izraz) {
 
 	Calculator calc;
@@ -114,6 +113,8 @@ double rs(string izraz) {
 	return rez;
 }
 
+//Funkcija prima vektor koji sadrzi izraz koji je racunar pronasao,
+//i izracunava ga, vraca njegovu vrednost.
 double rs_naj(vector<string> naj) {
 
 	string s = "";
@@ -128,12 +129,12 @@ double rs_naj(vector<string> naj) {
 }
 
 
-bool pronadji_rezultat2(vector<string> brojevi, double rezultat,vector<string>& resenje, vector<string>& najblizi) {
+bool pronadji_rezultat(vector<string> brojevi, double rezultat,vector<string>& resenje, vector<string>& najblizi) {
 
 
 	char operacije[4] = { '+','-','*','/' };
 
-	for (int i = 0; i < brojevi.size()-1; i++) {
+	for (int i = 0; i < brojevi.size(); i++) {
 		double a = rs(brojevi[i]);
 
 		for (int j = i + 1; j < brojevi.size(); j++) {
@@ -152,7 +153,9 @@ bool pronadji_rezultat2(vector<string> brojevi, double rezultat,vector<string>& 
 				}
 
 				string res = "(" + brojevi[i] + operacije[k] + brojevi[j] + ")";
+
 				double temp = racunaj(a, b, operacije[k]);
+
 				if (temp == 0) {
 					continue;
 				}
@@ -179,7 +182,7 @@ bool pronadji_rezultat2(vector<string> brojevi, double rezultat,vector<string>& 
 					}
 				}
 
-				if (pronadji_rezultat2(novi, rezultat, resenje, najblizi)) {
+				if (pronadji_rezultat(novi, rezultat, resenje, najblizi)) {
 					return true;
 				}
 
@@ -189,68 +192,46 @@ bool pronadji_rezultat2(vector<string> brojevi, double rezultat,vector<string>& 
 	return false;
 }
 
-double racunaj2(vector<double> brojevi, vector<int> oper) {
 
-	char operacije[4] = { '+','-','*','/' };
-	string izraz = "";
+//Funkcija u kojoj racunar pronalazi resenje i ispisuje ga za broj koji se trazi.
+//Kao parametre prima brojeve i trazeni broj, a na kraju samo ispisuje izraz na ekran.
 
-	Calculator calc;
+void pronadji_resenje(vector<double> brojevi, double rezultat,string& izraz) {
 
-	for (int i = 0; i < 5; i++) {
-		izraz += to_string(brojevi[i]).substr(0, to_string(brojevi[i]).find('.'));
-		izraz += operacije[oper[i]];
-	}
-	izraz += to_string(brojevi[5]).substr(0, to_string(brojevi[5]).find('.'));
+	vector<string> najblizi;		//Vektor u kome ce se nalaziti izraz najblizeg broja
+	najblizi.push_back("999+999");	
+	vector<string> resenje;			//Vektor u kome ce se nalaziti izraz trazenog broja
 
-	cout << "IZRAZ: " << izraz << endl;
-
-	try {
-		vector<string> str = calc.InfixToRPN(izraz);
-
-		for (string s : str) {
-			cout << s << " ";
-		}
-
-		double dab = calc.racunajRPN(str);
-		return dab;
-	}
-	catch (...) {
-		return 99999;
-	}
-
-}
-
-
-
-
-void pronadji_resenje(vector<double> brojevi, double rezultat) {
-
-	vector<string> najblizi;
-	najblizi.push_back("999+999");
-	vector<string> resenje;
-
-	vector<string> brojevi2;
+	vector<string> brojevi2;		
 	for (double br : brojevi) {
 		brojevi2.push_back(s(br));
 	}
 
 	Calculator cal;
 
-	if (pronadji_rezultat2(brojevi2, rezultat, resenje, najblizi)) {
-		vector<string> stek = cal.InfixToRPN(resenje[0]);
-		double res = cal.racunajRPN(stek);
+	//U koliko funkcija pronadji_rezultat vrati true,znaci da je racunar pronasao resenje,
+	//te ga ispisuje na konzolu. U koliko resenje nije pronadjeno,funkcija ce izracunati
+	//najblizi izraz i ispisati najblizi broj trazenom koji je racunar pronasao.
+
+	if (pronadji_rezultat(brojevi2, rezultat, resenje, najblizi)) {
+		vector<string> stek = cal.InfixToRPN(resenje[0]);	//Vektor u kome se nalazi izraz u RPN notaci
+		double res = cal.racunajRPN(stek);					//Izracunat izraz
 
 		if (rezultat == res) {
 			cout << "Racunar je dobio tacan broj: " << rezultat << " = " << resenje[0] << endl;
+			izraz = s(rezultat) + " = " + resenje[0];
 		}
 	}
 	else {
 		vector<string> stek = cal.InfixToRPN(najblizi[0]);
 		double res = cal.racunajRPN(stek);
 		cout << "Racunar je dobio najblizi broj: " << res << " = " << najblizi[0] << endl;
+		izraz = s(res) + " = " + najblizi[0];
 	}
 
 }
+
+//Funkcija printuje brojeve koje korisnik moze da korisni na konzolu,kao i broj koji se trazi.
 
 void printajBrojeve(Broj igra) {
 
@@ -261,7 +242,57 @@ void printajBrojeve(Broj igra) {
 	cout << endl;
 }
 
-vector<string> korisnikIzraz() {
+//Funkcija proverava da li se broj nalazi u vektoru i brise ga nakon nalazenja.
+
+bool provera(vector<double>& brojevi, double broj) {
+
+	bool ima = false;
+	for (int i = 0; i < brojevi.size(); i++) {
+
+		if (broj == brojevi[i]) {
+			ima = true;
+			brojevi.erase(brojevi.begin() + i);
+			break;
+		}
+
+	}
+
+	return ima;
+
+}
+
+//Funkcija prima ponudjene brojeve i korisnikov uneti izraz i proverava
+//da li je korisnik uneo samo brojeve koji su ponudjeni uz pomoc funkcije
+// provera.
+
+bool ispravni_brojevi(vector<double> brojevi, vector<string> unosRPN) {
+
+	Calculator c;
+	try {
+		for (string str : unosRPN) {
+			if (c.rucniDigit(str)) {
+				if (!provera(brojevi, stod(str))) {
+					return false;
+				}
+			}
+
+		}
+	}
+	catch (...) {
+		return false;
+	}
+
+	return true;
+	
+}
+
+
+//Funkcija proverava izraz koji je korisnik uneo tako sto pokusava da ga pretvori u RPN
+//notaciju i izracuna,u koliko je korisnik uneo los izraz ili uneo brojeve koji nisu
+// ponudjeni catch ce uhvatiti gresku i korisnik mora ponovo da unese novi izraz. 
+// Funkcija vraca broj koji je korisnik dobio, kao i izraz koji je uneo.
+
+vector<string> korisnikIzraz(vector<double> brojevi) {
 
 	vector<string> izraz_broj;
 	string unos;
@@ -275,12 +306,14 @@ vector<string> korisnikIzraz() {
 			cin >> input;
 
 			vector<string> stek = calc.InfixToRPN(input);
+			if (!ispravni_brojevi(brojevi, stek)) {
+				throw "Ne mozete koristiti brojeve koji nisu ponudjeni!";
+			}
 
 			double racun = calc.racunajRPN(stek);
 			unos = input;
 			broj = racun;
-
-			cout << "Rezultat vaseg izraza: " << racun << endl;
+			cout << "Rezultat unetog izraza: " << racun << endl;
 			break;
 		}
 		catch (...) {
@@ -295,6 +328,8 @@ vector<string> korisnikIzraz() {
 
 }
 
+
+//Funkcija vraca string i ispisuje ko je od korisnika pobedio u zavisnosti od njihovih resenja.
 string koJePobednik(double resenjeA, double resenjeB, double odstupanjeA, double odstupanjeB) {
 
 	string pobednik;
@@ -323,9 +358,55 @@ string koJePobednik(double resenjeA, double resenjeB, double odstupanjeA, double
 }
 
 
+void upis_rezultata(int A, int B,vector<Runda> runde) {
+
+	ofstream upis("Rezultati.txt");
+	//upis.open("Rezultati.txt");
+
+	for (int i = 0; i < runde.size(); i++) {
+		Runda runda = runde[i];
+
+		upis << "Broj runde: " << i + 1 << endl;
+		upis << "		Brojevi na raspolaganju: ";
+
+		for (double br : runda.brojevi) {
+			upis << s(br) << " ";
+		}
+		upis << endl;
+		upis << "		Trazeni broj: " << s(runda.trazeni) << endl;
+		upis << "		Igrac A:" << endl;
+		upis << "			Dobijeni broj: " << s(runda.resenjeA) << endl;
+		upis << "			Odstupanje: " << s(runda.odstupanjeA) << endl;
+		upis << "			Izraz: " << runda.izrazA << endl;
+		upis << "		Igrac B:" << endl;
+		upis << "			Dobijeni broj: " << s(runda.resenjeB) << endl;
+		upis << "			Odstupanje: " << s(runda.odstupanjeB) << endl;
+		upis << "			Izraz: " << runda.izrazB << endl;
+		upis << "		Pobednik runde: " << runda.pobednik << endl;
+		upis << "		Racunar: " << runda.racunarIzraz << endl;
+
+	}
+	upis << "Broj osvojenih rundi: " << endl;
+	upis << "		Igrac A: " << A << endl;
+	upis << "		Igrac B: " << B << endl;
+
+	if (A > B) {
+		upis << "Pobednik igre je igrac A! " << endl;
+	}
+	else if (B > A) {
+		upis << "Pobenik igre je igrac B!" << endl;
+	}
+	else {
+		upis << "Igra je neresena! " << endl;
+	}
+
+	upis.close();
+}
+
+
+
 int main() {
 	
-
 
 	cout << "====================== MOJ BROJ ======================" << endl << endl;
 
@@ -334,7 +415,6 @@ int main() {
 	vector<Runda> sve_runde;
 
 	for (int i = 0; i < sve_igre.size(); i++) {
-		//pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje);
 
 		string izrazA = "Nema izraza";
 		string izrazB = "Nema izraza";
@@ -343,14 +423,14 @@ int main() {
 		string pobednik = "Nema pobednika";
 		double odstupanjeA = 999;
 		double odstupanjeB = 999;
-		//vector<string> unosi_igraca;
+		string racunar_izraz;
 
 		cout << "---------------------- Runda " << i+1 << " ----------------------"<< endl;
 		printajBrojeve(sve_igre[i]);
 		
 		if (sve_igre[i].na_potezu == "A") {
 			cout << "Igrac A: ";
-			vector<string> unos = korisnikIzraz();
+			vector<string> unos = korisnikIzraz(sve_igre[i].brojevi);
 			izrazA = unos[0]; resenjeA = stod(unos[1]); odstupanjeA = abs(sve_igre[i].resenje - stod(unos[1]));
 
 			if (stod(unos[1]) == sve_igre[i].resenje) {
@@ -359,7 +439,7 @@ int main() {
 			}
 			else {
 				cout << "Igrac B: ";
-				vector<string> unosB = korisnikIzraz();
+				vector<string> unosB = korisnikIzraz(sve_igre[i].brojevi);
 				izrazB = unosB[0]; resenjeB = stod(unosB[1]); odstupanjeB = abs(sve_igre[i].resenje - stod(unosB[1]));
 
 				if (resenjeB == sve_igre[i].resenje) {
@@ -371,7 +451,7 @@ int main() {
 		}
 		else {
 			cout << "Igrac B: ";
-			vector<string> unos = korisnikIzraz();
+			vector<string> unos = korisnikIzraz(sve_igre[i].brojevi);
 			izrazB = unos[0]; resenjeB = stod(unos[1]); odstupanjeB = abs(sve_igre[i].resenje - stod(unos[1]));
 
 			if (stod(unos[1]) == sve_igre[i].resenje) {
@@ -380,7 +460,7 @@ int main() {
 			}
 			else {
 				cout << "Igrac A: ";
-				vector<string> unosA = korisnikIzraz();
+				vector<string> unosA = korisnikIzraz(sve_igre[i].brojevi);
 				izrazA = unosA[0]; resenjeA = stod(unosA[1]); odstupanjeA = abs(sve_igre[i].resenje - stod(unosA[1]));
 				if (resenjeA == sve_igre[i].resenje) {
 					cout << "Uneli ste tacan broj! Korisnik A je pobedio rundu!" << endl;
@@ -388,17 +468,43 @@ int main() {
 				}
 			}
 		}
-		pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje);
+		pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje,racunar_izraz);
 
 		if (pobednik == "Nema pobednika") {
 			pobednik = koJePobednik(resenjeA, resenjeB, odstupanjeA, odstupanjeB);
 		}
-		else {
-			Runda runda(izrazA, izrazB, resenjeA, resenjeB, pobednik, odstupanjeA, odstupanjeB);
-			sve_runde.push_back(runda);
-		}
+
+		Runda runda(izrazA, izrazB, resenjeA, resenjeB, pobednik, odstupanjeA, 
+					odstupanjeB,racunar_izraz,sve_igre[i].brojevi,sve_igre[i].resenje);
+		sve_runde.push_back(runda);
 
 	}
+
+	int A = 0;	//Broj rundi koji je igrac A osvojio
+	int B = 0;	//Broj rundi koji je igrac A osvojio
+
+	for (Runda runda : sve_runde) {
+		if (runda.pobednik == "Igrac A") {
+			A++;
+		}
+		else if (runda.pobednik == "Igrac B") {
+			B++;
+		}
+	}
+
+	if (A > B) {
+		cout << "Pobednik igre je igrac A koji je osvojio " << A
+			<< " poena, dok je igrac B osvojio " << B << " poena!" << endl;
+	}
+	else if (B > A) {
+		cout << "Pobednik igre je igrac B koji je osvojio " << B
+			<< " poena, dok je igrac B osvojio " << A << " poena!" << endl;
+	}
+	else {
+		cout << "Igra je neresena, a oba igraca su osvojila po " << A << " poena!" << endl;
+	}
+
+	upis_rezultata(A, B, sve_runde);
 
 }
 

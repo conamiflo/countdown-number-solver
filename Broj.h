@@ -7,10 +7,10 @@ class Broj {
 
 public:
 
-	vector<double> brojevi;
-	double resenje;
-	string na_potezu;
+	vector<double> brojevi;		//Brojevi koji su na raspolaganju za racunanje
+	double resenje;				//Broj koji se trazi
+	string na_potezu;			//Koji igrac je na potezu
 
-	Broj(vector<double> b, double r, string p);
+	Broj(vector<double> b, double r, string p);		//Konstruktor
 
 };

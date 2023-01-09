@@ -1,0 +1,56 @@
+Broj runde: 1
+		Brojevi na raspolaganju: 10 9 1 5 4 6 
+		Trazeni broj: 987
+		Igrac A:
+			Dobijeni broj: 46
+			Odstupanje: 941
+			Izraz: 10+9*4
+		Igrac B:
+			Dobijeni broj: 79
+			Odstupanje: 908
+			Izraz: 5*4+6*10-1
+		Pobednik runde: Igrac B
+		Racunar: 987 = ((((5+6)*(10*9))+1)-4)
+Broj runde: 2
+		Brojevi na raspolaganju: 1 2 3 4 25 75 
+		Trazeni broj: 755
+		Igrac A:
+			Dobijeni broj: 350
+			Odstupanje: 405
+			Izraz: 75*4+2*25
+		Igrac B:
+			Dobijeni broj: 450
+			Odstupanje: 305
+			Izraz: 25*4*3+75*2
+		Pobednik runde: Igrac B
+		Racunar: 755 = (((3+75)*((1+4)*2))-25)
+Broj runde: 3
+		Brojevi na raspolaganju: 5 9 7 9 2 4 
+		Trazeni broj: 804
+		Igrac A:
+			Dobijeni broj: 60
+			Odstupanje: 744
+			Izraz: 7*9+2-5
+		Igrac B:
+			Dobijeni broj: 571
+			Odstupanje: 233
+			Izraz: 9*7*9+4
+		Pobednik runde: Igrac B
+		Racunar: 804 = (((7*9)+4)*((5+9)-2))
+Broj runde: 4
+		Brojevi na raspolaganju: 8 10 2 5 6 7 
+		Trazeni broj: 532
+		Igrac A:
+			Dobijeni broj: 560
+			Odstupanje: 28
+			Izraz: 8*10*7
+		Igrac B:
+			Dobijeni broj: 80
+			Odstupanje: 452
+			Izraz: 8*10
+		Pobednik runde: Igrac A
+		Racunar: 532 = (((((8+10)-5)*6)-2)*7)
+Broj osvojenih rundi: 
+		Igrac A: 1
+		Igrac B: 3
+Pobenik igre je igrac B!
