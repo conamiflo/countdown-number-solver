@@ -84,7 +84,7 @@ double racunaj(double i, double j, char op) {
 		break;
 	case '/':
 		if (j == 0) {
-			throw "GRESKA";
+			throw "Deljenje sa nulom";
 		}
 		rez = i / j;
 		break;
@@ -128,38 +128,50 @@ double rs_naj(vector<string> naj) {
 	return rez;
 }
 
-
+//Funkcija za trazenenje izraza,prima brojeve,rezultat kao i reference na resenje i najblizi broj.
+//Funkcionise tako sto uzima po 2 broja i vektora i vrsi operaciju nad njima,pa ako su svi uslovi zadovoljeni,
+//formira se novi vektor bez prva 2 broja na koji se pushuje dobijeni rezultat i ostali brojevi, te se opet
+//rekurzivno zove funkcija za taj novi vektor sve dok ne bude u njemu imalo sta da se racuna odnosno dok velicina
+//nije 1 ili dok to sto je ostalo u vektoru nije izraz koji kada se izracuna predstavlja trazeno resenje.
+//Funkcija je detaljno opisana u izvestaju.
 bool pronadji_rezultat(vector<string> brojevi, double rezultat,vector<string>& resenje, vector<string>& najblizi) {
 
 
 	char operacije[4] = { '+','-','*','/' };
 
+	//Uzimaju se 2 broja iz vektora
 	for (int i = 0; i < brojevi.size(); i++) {
 		double a = rs(brojevi[i]);
 
 		for (int j = i + 1; j < brojevi.size(); j++) {
 			double b = rs(brojevi[j]);
-			
+			//Vrsi se svaka operacija nad ta 2 broja
 			for (int k = 0; k < 4; k++) {
 
+				//Proverava da li je deljenje 0 i da li je rezultat deljenja celobrojna vrednost,
+				//ako jeste preskace se operacija
 				if (operacije[k] == '/' && ((a / b != floor(a / b)) || b == 1 || b == 0)) {
 					continue;
 				}
+				//Ako je b > a a brojevi treba da se oduzmu preskace se operacija
 				else if (operacije[k] == '-' && b > a) {
 					continue;
 				}
 				else if (operacije[k] == '*' && (b == 1 || a == 1)) {
 					continue;
 				}
-
+				//Formira se izraz od dobijenog rezultata
 				string res = "(" + brojevi[i] + operacije[k] + brojevi[j] + ")";
 
+				//Rezultat koji je dobijen izvrsavanjem operacije nad izabrana 2 broja
 				double temp = racunaj(a, b, operacije[k]);
 
+				//Ako je dobijeni broj 0 ide se na sledecu operaciju
 				if (temp == 0) {
 					continue;
 				}
 
+				//Pravljenje novog vektora i dodavanje brojeva koji nisu iskorisceni u njega
 				vector<string> novi;
 				novi.push_back(res);
 
@@ -172,16 +184,18 @@ bool pronadji_rezultat(vector<string> brojevi, double rezultat,vector<string>& r
 					}
 				}
 
+				//Ako je dobijeni broj = rezultatu prekidamo rekurzije i vracamo true
 				if (temp == rezultat) {
 					resenje = novi;
 					return true;
 				}
+				//Proverava se da li je broj blizi od prethodnog 
 				else if (novi.size() == 1) {
 					if (abs(rezultat - temp) < abs(rezultat - rs_naj(najblizi))) {
 						najblizi = novi;
 					}
 				}
-
+				//Zove se rekurzija za novi vektor
 				if (pronadji_rezultat(novi, rezultat, resenje, najblizi)) {
 					return true;
 				}
@@ -357,7 +371,8 @@ string koJePobednik(double resenjeA, double resenjeB, double odstupanjeA, double
 
 }
 
-
+//Funkcija upisuje sve informacije o svakoj rundi u izlazni fajl
+//Prima A i B koji su broj osvojenih rundi za igrace i prima sve runde.
 void upis_rezultata(int A, int B,vector<Runda> runde) {
 
 	ofstream upis("Rezultati.txt");
@@ -405,29 +420,48 @@ void upis_rezultata(int A, int B,vector<Runda> runde) {
 
 
 
-int main() {
+int main(int argc , char** argv) {
 	
+
+
+	vector<Broj> sve_igre; //Vektor sadrzi brojeve za svaku rundu
+	
+	//Proveravaju se argumenti komandne linije i ucitava fajl 
+	if (argc == 2) {
+		try {
+			string argument = argv[1];
+			sve_igre = ucitaj_fajl(argument);
+		}
+		catch (...) {
+			cout << "Nije moguce pristupiti fajlu!" << endl;
+			exit(-1);
+		}
+	}
+	else {
+		string unet_fajl = unos_fajla();
+		sve_igre = ucitaj_fajl(unet_fajl);
+	}
 
 	cout << "====================== MOJ BROJ ======================" << endl << endl;
 
-	string unet_fajl = unos_fajla();
-	vector<Broj> sve_igre = ucitaj_fajl(unet_fajl);
-	vector<Runda> sve_runde;
+
+	vector<Runda> sve_runde;	//Vektor u kome se nalaze odigrane runde
 
 	for (int i = 0; i < sve_igre.size(); i++) {
 
-		string izrazA = "Nema izraza";
+		string izrazA = "Nema izraza";			//Izraz igraca A
 		string izrazB = "Nema izraza";
-		double resenjeA = 9999;
+		double resenjeA = 9999;					//Resenje igraca A
 		double resenjeB = 9999;
-		string pobednik = "Nema pobednika";
-		double odstupanjeA = 999;
+		string pobednik = "Nema pobednika";		//Pobednik runde
+		double odstupanjeA = 999;				//Koliko resenje korisnika odstupa od trazenog
 		double odstupanjeB = 999;
-		string racunar_izraz;
+		string racunar_izraz;					//Izraz koji je nasao racunar
 
 		cout << "---------------------- Runda " << i+1 << " ----------------------"<< endl;
 		printajBrojeve(sve_igre[i]);
 		
+		//Igraci a i b unose svoje izraze koji se racunaju i pamte
 		if (sve_igre[i].na_potezu == "A") {
 			cout << "Igrac A: ";
 			vector<string> unos = korisnikIzraz(sve_igre[i].brojevi);
@@ -468,6 +502,8 @@ int main() {
 				}
 			}
 		}
+		//Racunar pronalazi svoje resenje i odredjuje se ko je pobednik runde,
+		//i formira se runda koja sadrzi informacije o citavoj rundi
 		pronadji_resenje(sve_igre[i].brojevi, sve_igre[i].resenje,racunar_izraz);
 
 		if (pobednik == "Nema pobednika") {
@@ -483,6 +519,7 @@ int main() {
 	int A = 0;	//Broj rundi koji je igrac A osvojio
 	int B = 0;	//Broj rundi koji je igrac A osvojio
 
+	//Prolazi se kroz sve runde i gleda se koliko poena ima koji igrac
 	for (Runda runda : sve_runde) {
 		if (runda.pobednik == "Igrac A") {
 			A++;
@@ -498,12 +535,12 @@ int main() {
 	}
 	else if (B > A) {
 		cout << "Pobednik igre je igrac B koji je osvojio " << B
-			<< " poena, dok je igrac B osvojio " << A << " poena!" << endl;
+			<< " poena, dok je igrac A osvojio " << A << " poena!" << endl;
 	}
 	else {
 		cout << "Igra je neresena, a oba igraca su osvojila po " << A << " poena!" << endl;
 	}
-
+	//Upis informacija o svakoj rundi i o pobedniku u fajl
 	upis_rezultata(A, B, sve_runde);
 
 }

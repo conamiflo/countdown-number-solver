@@ -118,7 +118,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 				if (!operacije.empty()) {
 					while (operacije.back() != '(') {
 						if (operacije.empty()) {
-							throw "GRESKA";
+							throw "Problem sa zagradom";
 						}
 						string temp = ""; temp += operacije.back();
 						stek3.push_back(temp);
@@ -132,7 +132,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 
 			}
 			else {
-				throw "GRESKA";
+				throw "Unet pogresan karakter";
 			}
 
 		}
@@ -148,7 +148,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 	//biti zatvorene zagrade
 	while (!operacije.empty()) {
 		if (operacije.back() == '(') {
-			throw "GRESKA";
+			throw "Problem sa zagradom";
 		}
 		string temp = ""; temp += operacije.back();
 		stek3.push_back(temp);
@@ -160,7 +160,7 @@ vector<string> Calculator::InfixToRPN(string input) {
 		return stek3;
 	}
 	else {
-		throw "GRESKA";
+		throw "Izraz nije dobar";
 	}
 
 
@@ -186,7 +186,7 @@ double Calculator::racunanje(double i, double j, char op) {
 		break;
 	case '/':
 		if (j == 0 || floor(i/j) != i/j) {
-			throw "GRESKA";
+			throw "Deljenje sa nulom/nije int";
 		}
 		rez = i / j;
 		break;
@@ -223,7 +223,7 @@ double Calculator::racunajRPN(vector<string> stek) {
 
 		//Ako je na steku ostalo vise od 1 broja ili manje baca gresku
 		if (rezultati.size() > 1 || rezultati.size() < 1) {
-			throw "GRESKA";
+			throw "Greska kod racunanja";
 		}
 		//Popuje broj sa steka koji predstavlja rezultat celog izraza
 		return rezultati.back();
